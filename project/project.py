@@ -163,6 +163,12 @@ def adjust_heat_cascades(heat_cascade,temperature_interval):
     return Tpinch, Qpinch,Qhot,Qcold
 
 def grand_compositive_curve(heat,temperature):
+<<<<<<< HEAD
+=======
+    '''
+    This function plot the grand compositive curve based on the heat casscatte and temperature
+    '''
+>>>>>>> GCC
     for i in range(len(heat)-1):
         plt.plot([heat[i],heat[i+1]],[temperature[i],temperature[i+1]],color = 'blue')
         plt.plot([0,heat[i]],[temperature[i],temperature[i]],'r:')
