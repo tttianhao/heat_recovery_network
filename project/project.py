@@ -209,11 +209,12 @@ def insert_Q(i,temperature_interval,deltaH,rc,Q):
     return temperature_interval,deltaH
 
 def integrate_column(column,temperature_interval,deltaH):
+    newTemperatureInt = temperature_interval
+    newDeltaH = deltaH
     for i in column:
-        if i.Sreb not in temperature_interval:
+        if i.Sreb not in newTemperatureInt:
             # if i.Sreb < max(temperature_interval) and i.Sreb > min(temperature_interval):
-            newTemperatureInt,newDeltaH = insert_Q(i,temperature_interval,deltaH,i.Sreb,-i.Q)
-            
+            newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Sreb,-i.Q)
         else:
             index = temperature_interval.index(i.Sreb)
             newTemperatureInt = np.insert(temperature_interval,index,i.Sreb)
@@ -256,8 +257,14 @@ def main(streams,columns):
     #grand_compositive_curve(heatCascades,temperatureInterval)
     print('==============================')
     newTemperatureInt,newDeltaH = integrate_column(columns,temperatureInterval,deltaH)
-    print(newTemperatureInt)
-    print(newDeltaH)
+    print('The integrated column temperature interval is: {}'.format(newTemperatureInt))
+    print('The new delta H is: {}'.format(newDeltaH))
+    newHeatCascades = calculate_heat_cascades(newDeltaH)
+    print('new HeatCascades is: {}'.format(newHeatCascades))
+    newTpinch,newQpinch,newQhot,newQcold = adjust_heat_cascades(newHeatCascades,newTemperatureInt)
+    print('The adjusted heat cascade is {}'.format(newHeatCascades))
+    print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(newTpinch,newQhot,newQcold))
+
 
 if __name__ == "__main__":
     # stream_1 = stream(2,20,135,1)
