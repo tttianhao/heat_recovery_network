@@ -7,7 +7,7 @@ class stream:
     """
 
     #This is Delta Tmin=10
-    deltaTmin = 10
+    deltaTmin = 20
     numberOfStream = 0
 
     #initialize properties of the streams: CP, Tin, Tout, Sin, Sout and label stream number
@@ -42,7 +42,7 @@ class column:
     '''
     This class is the column class, It holds the properties of columns
     '''
-    deltaTmin = 10
+    deltaTmin = 20
     def __init__(self,Treb,Tcond,Q,number):
         self.Treb = Treb
         self.Tcond = Tcond
@@ -190,7 +190,10 @@ def grand_compositive_curve(heat,temperature):
     plt.show()
 
 def insert_Q(i,temperature_interval,deltaH,rc,Q):
-    temperature_interval.append(rc)
+    try:
+        temperature_interval.append(rc)
+    except:
+        temperature_interval = np.append(temperature_interval,rc)
     temperature_interval = sorted(temperature_interval,reverse=True)
     indexSreb = temperature_interval.index(rc)
     ratioUp = (temperature_interval[indexSreb-1]-rc)/(temperature_interval[indexSreb-1]-temperature_interval[indexSreb+1])
@@ -210,14 +213,20 @@ def integrate_column(column,temperature_interval,deltaH):
         if i.Sreb not in temperature_interval:
             # if i.Sreb < max(temperature_interval) and i.Sreb > min(temperature_interval):
             newTemperatureInt,newDeltaH = insert_Q(i,temperature_interval,deltaH,i.Sreb,-i.Q)
-            # elif i.Sreb > max(temperature_interval):
-            #     newTemperatureInt = np.insert(temperature_interval,0,[i.Sreb,i.Sreb])
-            #     newDeltaH = np.insert(deltaH,0,-i.Q)
-            # else:
-            #     newTemperatureInt = np.append(temperature_interval,i.Sreb)
-            #     newDeltaH = np.append(deltaH,-i.Q)
+            
+        else:
+            index = temperature_interval.index(i.Sreb)
+            newTemperatureInt = np.insert(temperature_interval,index,i.Sreb)
+            newDeltaH = np.insert(deltaH,index,-i.Q)
         if i.Scond not in temperature_interval:
             newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Scond,i.Q)
+        else:
+            for j in range(len(newTemperatureInt)):
+                if newTemperatureInt[j] == i.Scond:
+                    index = j
+                    break
+            newTemperatureInt = np.insert(newTemperatureInt,index,i.Scond)
+            newDeltaH = np.insert(newDeltaH,index,i.Q)
     return newTemperatureInt,newDeltaH
 
 def main(streams,columns):
@@ -255,11 +264,13 @@ if __name__ == "__main__":
     # stream_2 = stream(3,170,60,2)
     # stream_3 = stream(4,80,140,3)
     # stream_4 = stream(1.5,150,30,4)
-    stream_1 = stream(2,20,135,1)
-    stream_2 = stream(3,170,60,2)
-    stream_3 = stream(4,80,140,3)
-    stream_4 = stream(1.5,150,30,4)
+    # column_1 = column(150,140,20,1)
+    stream_1 = stream(2,20,140,1)
+    stream_2 = stream(3,200,80,2)
+    stream_3 = stream(4,60,140,3)
+    stream_4 = stream(1.5,160,30,4)
+    column_1 = column(160,80,60,1)
+
     streams=[stream_1,stream_2,stream_3,stream_4]
-    column_1 = column(150,140,20,1)
     columns = [column_1]
     main(streams,columns)
