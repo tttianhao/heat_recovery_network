@@ -7,7 +7,7 @@ class stream:
     """
 
     #This is Delta Tmin=10
-    deltaTmin = 20
+    deltaTmin = 10
     numberOfStream = 0
 
     #initialize properties of the streams: CP, Tin, Tout, Sin, Sout and label stream number
@@ -42,7 +42,7 @@ class column:
     '''
     This class is the column class, It holds the properties of columns
     '''
-    deltaTmin = 20
+    deltaTmin = 10
     def __init__(self,Treb,Tcond,Q,number):
         self.Treb = Treb
         self.Tcond = Tcond
@@ -174,7 +174,7 @@ def adjust_heat_cascades(heat_cascade,temperature_interval):
             currentQ = 0
     Qhot = heat_cascade[0]
     Qcold = heat_cascade[-1]
-    return Tpinch, Qpinch,Qhot,Qcold
+    return Tpinch,Qhot,Qcold
 
 def grand_compositive_curve(heat,temperature):
     '''
@@ -251,32 +251,35 @@ def main(streams,columns):
     #initialize heat cascades
     heatCascades = calculate_heat_cascades(deltaH)
     print('The initial heat cascade is {}'.format(heatCascades))
-    Tpinch,Qpinch,Qhot,Qcold = adjust_heat_cascades(heatCascades,temperatureInterval)
+    Tpinch,Qhot,Qcold = adjust_heat_cascades(heatCascades,temperatureInterval)
     print('The adjusted heat cascade is {}'.format(heatCascades))
     print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(Tpinch,Qhot,Qcold))
-    #grand_compositive_curve(heatCascades,temperatureInterval)
+    grand_compositive_curve(heatCascades,temperatureInterval)
     print('==============================')
     newTemperatureInt,newDeltaH = integrate_column(columns,temperatureInterval,deltaH)
     print('The integrated column temperature interval is: {}'.format(newTemperatureInt))
     print('The new delta H is: {}'.format(newDeltaH))
     newHeatCascades = calculate_heat_cascades(newDeltaH)
     print('new HeatCascades is: {}'.format(newHeatCascades))
-    newTpinch,newQpinch,newQhot,newQcold = adjust_heat_cascades(newHeatCascades,newTemperatureInt)
+    newTpinch,newQhot,newQcold = adjust_heat_cascades(newHeatCascades,newTemperatureInt)
     print('The adjusted heat cascade is {}'.format(newHeatCascades))
     print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(newTpinch,newQhot,newQcold))
+    grand_compositive_curve(newHeatCascades,newTemperatureInt)
 
 
 if __name__ == "__main__":
-    # stream_1 = stream(2,20,135,1)
-    # stream_2 = stream(3,170,60,2)
-    # stream_3 = stream(4,80,140,3)
-    # stream_4 = stream(1.5,150,30,4)
-    # column_1 = column(150,140,20,1)
-    stream_1 = stream(2,20,140,1)
-    stream_2 = stream(3,200,80,2)
-    stream_3 = stream(4,60,140,3)
-    stream_4 = stream(1.5,160,30,4)
-    column_1 = column(160,80,60,1)
+    stream.deltaTmin=10
+    column.deltaTmin=10
+    stream_1 = stream(2,20,135,1)
+    stream_2 = stream(3,170,60,2)
+    stream_3 = stream(4,80,140,3)
+    stream_4 = stream(1.5,150,30,4)
+    column_1 = column(150,140,20,1)
+    # stream_1 = stream(2,20,140,1)
+    # stream_2 = stream(3,200,80,2)
+    # stream_3 = stream(4,60,140,3)
+    # stream_4 = stream(1.5,160,30,4)
+    # column_1 = column(160,80,60,1)
 
     streams=[stream_1,stream_2,stream_3,stream_4]
     columns = [column_1]
