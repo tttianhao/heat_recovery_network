@@ -48,7 +48,7 @@ class column:
         self.Tcond = Tcond
         self.number = number
         self.Sreb = Treb+self.deltaTmin/2
-        self.Scond = Tcond +self.deltaTmin/2
+        self.Scond = Tcond -self.deltaTmin/2
         self.Q = Q
 
 
@@ -189,8 +189,36 @@ def grand_compositive_curve(heat,temperature):
     plt.title('Grand Compositive Curve')    
     plt.show()
 
+def insert_Q(i,temperature_interval,deltaH,rc,Q):
+    temperature_interval.append(rc)
+    temperature_interval = sorted(temperature_interval,reverse=True)
+    indexSreb = temperature_interval.index(rc)
+    ratioUp = (temperature_interval[indexSreb-1]-rc)/(temperature_interval[indexSreb-1]-temperature_interval[indexSreb+1])
+    ratioDown = -(temperature_interval[indexSreb+1]-rc)/(temperature_interval[indexSreb-1]-temperature_interval[indexSreb+1])
+    indexDeltaH = indexSreb-1
+    temperature_interval.insert(indexSreb,rc)
+    deltaHUp = deltaH[indexDeltaH]*ratioUp
+    deltaHDown = deltaH[indexDeltaH]*ratioDown
+    deltaH = np.insert(deltaH,indexDeltaH,deltaHUp)
+    deltaH = np.insert(deltaH,indexDeltaH+1,Q)
+    deltaH = np.insert(deltaH,indexDeltaH+2,deltaHDown)
+    deltaH = np.delete(deltaH,indexDeltaH+3)
+    return temperature_interval,deltaH
+
 def integrate_column(column,temperature_interval,deltaH):
-    pass
+    for i in column:
+        if i.Sreb not in temperature_interval:
+            # if i.Sreb < max(temperature_interval) and i.Sreb > min(temperature_interval):
+            newTemperatureInt,newDeltaH = insert_Q(i,temperature_interval,deltaH,i.Sreb,-i.Q)
+            # elif i.Sreb > max(temperature_interval):
+            #     newTemperatureInt = np.insert(temperature_interval,0,[i.Sreb,i.Sreb])
+            #     newDeltaH = np.insert(deltaH,0,-i.Q)
+            # else:
+            #     newTemperatureInt = np.append(temperature_interval,i.Sreb)
+            #     newDeltaH = np.append(deltaH,-i.Q)
+        if i.Scond not in temperature_interval:
+            newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Scond,i.Q)
+    return newTemperatureInt,newDeltaH
 
 def main(streams,columns):
     '''
@@ -216,10 +244,12 @@ def main(streams,columns):
     Tpinch,Qpinch,Qhot,Qcold = adjust_heat_cascades(heatCascades,temperatureInterval)
     print('The adjusted heat cascade is {}'.format(heatCascades))
     print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(Tpinch,Qhot,Qcold))
-    grand_compositive_curve(heatCascades,temperatureInterval)
+    #grand_compositive_curve(heatCascades,temperatureInterval)
     print('==============================')
+    newTemperatureInt,newDeltaH = integrate_column(columns,temperatureInterval,deltaH)
+    print(newTemperatureInt)
+    print(newDeltaH)
 
-    
 if __name__ == "__main__":
     # stream_1 = stream(2,20,135,1)
     # stream_2 = stream(3,170,60,2)
