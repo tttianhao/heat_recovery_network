@@ -43,13 +43,14 @@ class column:
     This class is the column class, It holds the properties of columns
     '''
     deltaTmin = 10
-    def __init__(self,Treb,Tcond,Q,number):
+    def __init__(self,Treb,Tcond,Qreb,Qcond,number):
         self.Treb = Treb
         self.Tcond = Tcond
         self.number = number
         self.Sreb = Treb+self.deltaTmin/2
         self.Scond = Tcond -self.deltaTmin/2
-        self.Q = Q
+        self.Qreb = Qreb
+        self.Qcond = Qcond
 
 
 def calculate_shifted_temperature_interval(streams):
@@ -214,20 +215,20 @@ def integrate_column(column,temperature_interval,deltaH):
     for i in column:
         if i.Sreb not in newTemperatureInt:
             # if i.Sreb < max(temperature_interval) and i.Sreb > min(temperature_interval):
-            newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Sreb,-i.Q)
+            newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Sreb,-i.Qreb)
         else:
             index = temperature_interval.index(i.Sreb)
             newTemperatureInt = np.insert(temperature_interval,index,i.Sreb)
-            newDeltaH = np.insert(deltaH,index,-i.Q)
+            newDeltaH = np.insert(deltaH,index,-i.Qreb)
         if i.Scond not in temperature_interval:
-            newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Scond,i.Q)
+            newTemperatureInt,newDeltaH = insert_Q(i,newTemperatureInt,newDeltaH,i.Scond,i.Qcond)
         else:
             for j in range(len(newTemperatureInt)):
                 if newTemperatureInt[j] == i.Scond:
                     index = j
                     break
             newTemperatureInt = np.insert(newTemperatureInt,index,i.Scond)
-            newDeltaH = np.insert(newDeltaH,index,i.Q)
+            newDeltaH = np.insert(newDeltaH,index,i.Qcond)
     return newTemperatureInt,newDeltaH
 
 def main(streams,columns):
@@ -253,34 +254,61 @@ def main(streams,columns):
     print('The initial heat cascade is {}'.format(heatCascades))
     Tpinch,Qhot,Qcold = adjust_heat_cascades(heatCascades,temperatureInterval)
     print('The adjusted heat cascade is {}'.format(heatCascades))
-    print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(Tpinch,Qhot,Qcold))
-    grand_compositive_curve(heatCascades,temperatureInterval)
+    print('Tpinch is {:.4g}C, Qhot is {:.4g}kw and Qcold is {:.4g}kw.'.format(Tpinch,Qhot,Qcold))
+    #grand_compositive_curve(heatCascades,temperatureInterval)
+    file = open('Heat_cascade.txt','w+')
+    file.write('Temperature  deltaH  final_hc \n')
+    file.write('{:8.4g}               {:5.4g}\n'.format(temperatureInterval[0],heatCascades[0]))
+    for i in np.arange(0,len(temperatureInterval)-1):
+        file.write('            {:6.4g}\n'.format(deltaH[i]))
+        file.write('{:8.4g}               {:5.4g}\n'.format(temperatureInterval[i+1],heatCascades[i+1]))
     print('==============================')
-    newTemperatureInt,newDeltaH = integrate_column(columns,temperatureInterval,deltaH)
-    print('The integrated column temperature interval is: {}'.format(newTemperatureInt))
-    print('The new delta H is: {}'.format(newDeltaH))
-    newHeatCascades = calculate_heat_cascades(newDeltaH)
-    print('new HeatCascades is: {}'.format(newHeatCascades))
-    newTpinch,newQhot,newQcold = adjust_heat_cascades(newHeatCascades,newTemperatureInt)
-    print('The adjusted heat cascade is {}'.format(newHeatCascades))
-    print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(newTpinch,newQhot,newQcold))
-    grand_compositive_curve(newHeatCascades,newTemperatureInt)
+    if columns != None:
+        newTemperatureInt,newDeltaH = integrate_column(columns,temperatureInterval,deltaH)
+        print('The integrated column temperature interval is: {}'.format(newTemperatureInt))
+        print('The new delta H is: {}'.format(newDeltaH))
+        newHeatCascades = calculate_heat_cascades(newDeltaH)
+        print('new HeatCascades is: {}'.format(newHeatCascades))
+        newTpinch,newQhot,newQcold = adjust_heat_cascades(newHeatCascades,newTemperatureInt)
+        print('The adjusted heat cascade is {}'.format(newHeatCascades))
+        print('Tpinch is {:.4g}C, Qhot is {:.4g}kw and Qcold is {:.4g}kw.'.format(newTpinch,newQhot,newQcold))
+        #grand_compositive_curve(newHeatCascades,newTemperatureInt)
+        file.write(' = = = = = = = = = = = = = = = = = \n')
+        file.write('Temperature  deltaH  final_hc \n')
+        file.write('{:8.4g}               {:5.4g}\n'.format(newTemperatureInt[0],newHeatCascades[0]))
+        for i in np.arange(0,len(newTemperatureInt)-1):
+            file.write('            {:6.4g}\n'.format(newDeltaH[i]))
+            file.write('{:8.4g}               {:5.4g}\n'.format(newTemperatureInt[i+1],newHeatCascades[i+1]))
+    file.close()
 
 
 if __name__ == "__main__":
     stream.deltaTmin=10
     column.deltaTmin=10
-    stream_1 = stream(2,20,135,1)
-    stream_2 = stream(3,170,60,2)
-    stream_3 = stream(4,80,140,3)
-    stream_4 = stream(1.5,150,30,4)
-    column_1 = column(150,140,20,1)
+    # stream_1 = stream(2,20,135,1)
+    # stream_2 = stream(3,170,60,2)
+    # stream_3 = stream(4,80,140,3)
+    # stream_4 = stream(1.5,150,30,4)
+    # column_1 = column(150,140,20,1)
     # stream_1 = stream(2,20,140,1)
     # stream_2 = stream(3,200,80,2)
     # stream_3 = stream(4,60,140,3)
     # stream_4 = stream(1.5,160,30,4)
     # column_1 = column(160,80,60,1)
 
-    streams=[stream_1,stream_2,stream_3,stream_4]
-    columns = [column_1]
+    stream_1 = stream(2.44,35.5,450,1)
+    stream_2 = stream(2.44,450,40,2)
+    stream_3 = stream(1.23,40,75,3)
+    stream_4 = stream(.22,35.5,25,4)
+    stream_5 = stream(1.53,104.5,70,5)
+    stream_6 = stream(1.15,129.9,80,6)
+    stream_7 = stream(3.26,183.2,80,7)
+    stream_8 = stream(.12,249.3,25,8)
+    stream_9 = stream(.54,80,25,9)
+    streams=[stream_1,stream_2,stream_3,stream_4,stream_5,stream_6,stream_7,stream_8,stream_9]
+    column_1 = column(129.9,35.5,95,35.7,1)
+    column_2 = column(150.3,104.5,286.5,186.8,2)
+    column_3 = column(249.3,183.2,2832,2552.7,3)
+    columns = [column_1,column_2,column_3]
     main(streams,columns)
+ 
