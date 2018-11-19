@@ -181,14 +181,14 @@ def grand_compositive_curve(heat,temperature):
     '''
     This function plot the grand compositive curve based on the heat casscatte and temperature
     '''
+    plt.figure(figsize=(10,6))
     for i in range(len(heat)-1):
         plt.plot([heat[i],heat[i+1]],[temperature[i],temperature[i+1]],color = 'blue')
-        plt.plot([0,heat[i]],[temperature[i],temperature[i]],'r:')
-    plt.plot([0,heat[-1]],[temperature[-1],temperature[-1]],'r:')
+        #plt.plot([0,heat[i]],[temperature[i],temperature[i]],'r:')
+    #plt.plot([0,heat[-1]],[temperature[-1],temperature[-1]],'r:')
     plt.xlim(0,max(heat))
-    plt.yticks(temperature)
+    #plt.yticks(temperature)
     plt.title('Grand Compositive Curve')    
-    plt.show()
 
 def insert_Q(i,temperature_interval,deltaH,rc,Q):
     try:
@@ -238,22 +238,22 @@ def main(streams,columns):
     input stream in the order of stream(CP,Tin,Tout,index)
     '''
     temperatureInterval = calculate_shifted_temperature_interval(streams)
-    print('The shfited temperature interval is {}'.format(temperatureInterval))
+    #print('The shfited temperature interval is {}'.format(temperatureInterval))
     temperatureDifference = caclulate_temperature_difference(temperatureInterval)
-    print('The temperatuer difference is {}'.format(temperatureDifference))
+    #print('The temperatuer difference is {}'.format(temperatureDifference))
     #initialize deltaCp and deltaH
     deltaCP = np.zeros(len(temperatureDifference))
     deltaH = np.zeros(len(temperatureDifference))
     deltaCP = calculate_deltaCP(deltaCP,streams,temperatureInterval)
-    print('The delta CP is {} '.format(deltaCP))
+    #print('The delta CP is {} '.format(deltaCP))
     for i in np.arange(len(deltaH)):
         deltaH[i] = (deltaCP[i]*temperatureDifference[i])
-    print('The deltaH is {}'.format(deltaH))
+    #print('The deltaH is {}'.format(deltaH))
     #initialize heat cascades
     heatCascades = calculate_heat_cascades(deltaH)
-    print('The initial heat cascade is {}'.format(heatCascades))
+    #print('The initial heat cascade is {}'.format(heatCascades))
     Tpinch,Qhot,Qcold = adjust_heat_cascades(heatCascades,temperatureInterval)
-    print('The adjusted heat cascade is {}'.format(heatCascades))
+    #print('The adjusted heat cascade is {}'.format(heatCascades))
     print('Tpinch is {:.4g}C, Qhot is {:.4g}kw and Qcold is {:.4g}kw.'.format(Tpinch,Qhot,Qcold))
     #grand_compositive_curve(heatCascades,temperatureInterval)
     file = open('Heat_cascade.txt','w+')
@@ -265,21 +265,23 @@ def main(streams,columns):
     print('==============================')
     if columns != None:
         newTemperatureInt,newDeltaH = integrate_column(columns,temperatureInterval,deltaH)
-        print('The integrated column temperature interval is: {}'.format(newTemperatureInt))
-        print('The new delta H is: {}'.format(newDeltaH))
+        #print('The integrated column temperature interval is: {}'.format(newTemperatureInt))
+        #print('The new delta H is: {}'.format(newDeltaH))
         newHeatCascades = calculate_heat_cascades(newDeltaH)
-        print('new HeatCascades is: {}'.format(newHeatCascades))
+        #print('new HeatCascades is: {}'.format(newHeatCascades))
         newTpinch,newQhot,newQcold = adjust_heat_cascades(newHeatCascades,newTemperatureInt)
-        print('The adjusted heat cascade is {}'.format(newHeatCascades))
-        print('Tpinch is {:.4g}C, Qhot is {:.4g}kw and Qcold is {:.4g}kw.'.format(newTpinch,newQhot,newQcold))
+        #print('The adjusted heat cascade is {}'.format(newHeatCascades))
+        print('Tpinch is {}C, Qhot is {}kw and Qcold is {}kw.'.format(newTpinch,newQhot,newQcold))
         #grand_compositive_curve(newHeatCascades,newTemperatureInt)
-        file.write(' = = = = = = = = = = = = = = = = = \n')
-        file.write('Temperature  deltaH  final_hc \n')
-        file.write('{:8.4g}               {:5.4g}\n'.format(newTemperatureInt[0],newHeatCascades[0]))
-        for i in np.arange(0,len(newTemperatureInt)-1):
-            file.write('            {:6.4g}\n'.format(newDeltaH[i]))
-            file.write('{:8.4g}               {:5.4g}\n'.format(newTemperatureInt[i+1],newHeatCascades[i+1]))
-    file.close()
+        #plt.show()
+    #     file.write(' = = = = = = = = = = = = = = = = = \n')
+    #     file.write('Temperature  deltaH  final_hc \n')
+    #     file.write('{:8.4g}               {:5.4g}\n'.format(newTemperatureInt[0],newHeatCascades[0]))
+    #     for i in np.arange(0,len(newTemperatureInt)-1):
+    #         file.write('            {:6.4g}\n'.format(newDeltaH[i]))
+    #         file.write('{:8.4g}               {:5.4g}\n'.format(newTemperatureInt[i+1],newHeatCascades[i+1]))
+    # file.close()
+    return newQhot
 
 
 if __name__ == "__main__":
@@ -299,16 +301,20 @@ if __name__ == "__main__":
     stream_1 = stream(2.44,35.5,450,1)
     stream_2 = stream(2.44,450,40,2)
     stream_3 = stream(1.23,40,75,3)
-    stream_4 = stream(.22,35.5,25,4)
-    stream_5 = stream(1.53,104.5,70,5)
+    stream_4 = stream(.52,35.5,20,4)
+    stream_5 = stream(.66,104.5,70,5)
     stream_6 = stream(1.15,129.9,80,6)
     stream_7 = stream(3.26,183.2,80,7)
     stream_8 = stream(.12,249.3,25,8)
-    stream_9 = stream(.54,80,25,9)
-    streams=[stream_1,stream_2,stream_3,stream_4,stream_5,stream_6,stream_7,stream_8,stream_9]
+    stream_9 = stream(.11,80,25,9)
+    stream_10 = stream(0.4,70,35,10)
+    stream_11 = stream(4.47, 25, 100, 11)
+    stream_12 = stream(2.13, 100, 120, 12)
+    streams=[stream_1,stream_2,stream_3,stream_4,stream_5,stream_6,stream_7,stream_8,stream_9,stream_10,stream_11,stream_12]
     column_1 = column(129.9,35.5,95,35.7,1)
     column_2 = column(150.3,104.5,286.5,186.8,2)
     column_3 = column(249.3,183.2,2832,2552.7,3)
-    columns = [column_1,column_2,column_3]
+    column_4 = column(100, 100, 2406.9,0,4)
+    columns = [column_1,column_2,column_3,column_4]
     main(streams,columns)
  
